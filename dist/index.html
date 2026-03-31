@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🇭🇰</text></svg>" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="香港即時資訊App - 代碼超勁 × UI精緻 × 完美主義 | 實時地圖、交通、優惠、社區討論" />
+  <title>🇭🇰 香港即時資訊App</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f8fafc;
+      color: #1e293b;
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+
+    #app {
+      max-width: 480px;
+      margin: 0 auto;
+      background: white;
+      min-height: 100vh;
+      box-shadow: 0 0 40px rgba(0, 0, 0, 0.1);
+      position: relative;
+    }
+
+    /* 加載動畫 */
+    .loading {
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(135deg, #00247D 0%, #EF3340 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      color: white;
+      text-align: center;
+    }
+
+    .loading-logo {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .loading-bar {
+      width: 200px;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 2px;
+      overflow: hidden;
+      margin-top: 2rem;
+    }
+
+    .loading-progress {
+      height: 100%;
+      background: white;
+      border-radius: 2px;
+      animation: progress 1.5s ease-in-out infinite;
+    }
+
+    @keyframes progress {
+      0% { width: 0%; }
+      50% { width: 70%; }
+      100% { width: 100%; }
+    }
+
+    /* 主應用樣式 */
+    .header {
+      background: linear-gradient(135deg, #00247D 0%, #EF3340 100%);
+      color: white;
+      padding: 1.5rem;
+      border-radius: 0 0 2rem 2rem;
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .location {
+      display: flex;
+      align-items: center;
+      font-size: 0.9rem;
+      opacity: 0.9;
+    }
+
+    .location svg {
+      margin-right: 0.5rem;
+    }
+
+    .weather {
+      text-align: right;
+    }
+
+    .temp {
+      font-size: 2.5rem;
+      font-weight: bold;
+      line-height: 1;
+    }
+
+    .condition {
+      font-size: 0.9rem;
+      opacity: 0.9;
+    }
+
+    .quick-actions {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      padding: 1.5rem;
+    }
+
+    .action-btn {
+      background: white;
+      border-radius: 1rem;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      border: 1px solid #e2e8f0;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .action-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+    }
+
+    .action-icon {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .action-label {
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: #475569;
+    }
+
+    .section {
+      padding: 0 1.5rem 1.5rem;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .section-title {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #1e293b;
+    }
+
+    .see-all {
+      font-size: 0.9rem;
+      color: #3b82f6;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+    }
+
+    .see-all svg {
+      margin-left: 0.25rem;
+    }
+
+    .card {
+      background: white;
+      border-radius: 1rem;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+      border: 1px solid #e2e8f0;
+    }
+
+    .traffic-card {
+      border-left: 4px solid #ef4444;
+    }
+
+    .deal-card {
+      border-left: 4px solid #10b981;
+    }
+
+    .event-card {
+      border-left: 4px solid #8b5cf6;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 0.5rem;
+    }
+
+    .card-title {
+      font-weight: 600;
+      color: #1e293b;
+    }
+
+    .card-time {
+      font-size: 0.8rem;
+      color: #64748b;
+    }
+
+    .card-content {
+      font-size: 0.9rem;
+      color: #475569;
+      margin-bottom: 0.5rem;
+    }
+
+    .card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.8rem;
+      color: #64748b;
+    }
+
+    .nav-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      border-top: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: space-around;
+      padding: 0.75rem 0;
+      z-index: 100;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    .nav-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0.5rem;
+      color: #64748b;
+      text-decoration: none;
+      border: none;
+      background: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .nav-btn.active {
+      color: #3b82f6;
+    }
+
+    .nav-btn svg {
+      margin-bottom: 0.25rem;
+    }
+
+    .nav-label {
+      font-size: 0.7rem;
+    }
+
+    .map-btn {
+      background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+      color: white;
+      border-radius: 50%;
+      width: 56px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: -1.5rem;
+      box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+    }
+
+    /* 響應式 */
+    @media (max-width: 480px) {
+      #app {
+        max-width: 100%;
+      }
+      
+      .nav-bar {
+        max-width: 100%;
+      }
+    }
+
+    /* 深色模式 */
+    @media (prefers-color-scheme: dark) {
+      body {
+        background: #0f172a;
+      }
+      
+      #app {
+        background: #1e293b;
+        color: #f1f5f9;
+      }
+      
+      .header {
+        background: linear-gradient(135deg, #1e40af 0%, #be123c 100%);
+      }
+      
+      .action-btn {
+        background: #334155;
+        border-color: #475569;
+        color: #f1f5f9;
+      }
+      
+      .card {
+        background: #334155;
+        border-color: #475569;
+        color: #f1f5f9;
+      }
+      
+      .nav-bar {
+        background: #1e293b;
+        border-color: #334155;
+      }
+      
+      .section-title {
+        color: #f1f5f9;
+      }
+      
+      .action-label {
+        color: #cbd5e1;
+      }
+      
+      .card-title {
+        color: #f1f5f9;
+      }
+      
+      .card-content {
+        color: #cbd5e1;
+      }
+    }
+  </style>
+  <script type="module" crossorigin src="/assets/index-B5Qt9EMX.js"></script>
+</head>
+<body>
+  <!-- 加載屏幕 -->
+  <div id="loading" class="loading">
+    <div class="loading-logo">🇭🇰</div>
+    <h1 style="font-size: 1.5rem; font-weight: bold; margin-bottom: 0.5rem;">香港即時資訊App</h1>
+    <p style="opacity: 0.9;">💻 代碼超勁 × 🎨 UI精緻 × ♍ 完美主義</p>
+    <div class="loading-bar">
+      <div class="loading-progress"></div>
+    </div>
+    <p style="margin-top: 1rem; font-size: 0.875rem; opacity: 0.8;">加載中...</p>
+  </div>
+
+  <!-- 主應用 -->
+  <div id="app" style="display: none;">
+    <!-- 首頁 -->
+    <div id="home-page">
+      <!-- 頭部 -->
+      <div class="header">
+        <div class="header-top">
+          <div>
+            <h1 style="font-size: 1.5rem; font-weight: bold; margin-bottom: 0.25rem;">香港即時資訊</h1>
+            <div class="location">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                <circle cx="12" cy="10" r="3"></circle>
+              </svg>
+              <span>香港中環</span>
+            </div>
+          </div>
+          <div class="weather">
+            <div class="temp">24°C</div>
+            <div class="condition">部分多雲</div>
+          </div>
+        </div>
+        
+        <!-- 空氣質量 -->
+        <div style="background: rgba(255, 255, 255, 0.2); border-radius: 0.75rem; padding: 0.75rem; margin-top: 1rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-size: 0.9rem; opacity: 0.9;">空氣質量指數</div>
+              <div style="font-size: 1.5rem; font-weight: bold;">45</div>
+              <div style="font-size: 0.9rem; color: #10b981;">良好</div>
+            </div>
+            <div style="text-align: right;">
+              <div style="font-size: 0.9rem; opacity: 0.9;">PM2.5</div>
+              <div style="font-size: 1.2rem; font-weight: bold;">12 µg/m³</div>
+              <div style="font-size: 0.8rem; opacity: 0.8;">適合戶外活動</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 快速功能 -->
+      <div class="quick-actions">
+        <div class="action-btn">
+          <div class="action-icon">🚻</div>
+          <div class="action-label">廁所定位</div>
+        </div>
+        <div class="action-btn">
+          <div class="action-icon">🔌</div>
+          <div class="action-label">充電站</div>
+        </div>
+        <div class="action-btn">
+          <div class="action-icon">📶</div>
+          <div class="action-label">WiFi熱點</div>
+        </div>
+        <div class="action-btn">
+          <div class="action-icon">🌬️</div>
+          <div class="action-label">空氣質量</div>
+        </div>
+        <div class="action-btn">
+          <div class="action-icon">🔊</div>
+          <div class="action-label">噪音地圖</div>
+        </div>
+        <div class="action-btn">
+          <div class="action-icon">⏱️</div>
+          <div class="action-label">排隊時間</div>
+        </div>
+      </div>
+
+      <!-- 實時交通 -->
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title">實時交通狀況</div>
+          <a href="#" class="see-all">
+            查看更多
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </a>
+        </div>
+        
+        <div class="card traffic-card">
+          <div class="card-header">
+            <div class="card-title">紅磡海底隧道</div>
+            <div class="card-time">5分鐘前</div>
+          </div>
+          <div class="card-content">兩車相撞，快線封閉</div>
+          <div class="card-footer">
+            <div>交通意外</div>
+            <div>延誤: 30分鐘</div>
+          </div>
+        </div>
+        
+        <div class="card traffic-card">
+          <div class="card-header">
+            <div class="card-title">東區走廊東行</div>
+            <div class="card-time">10分鐘前</div>
+          </div>
+          <div class="card-content">交通擠塞，車龍長達2公里</div>
+          <div class="card-footer">
+            <div>交通擠塞</div>
+            <div>延誤: 15分鐘</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 附近優惠 -->
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title">附近優惠</div>
+          <a href="#" class="see-all">
+            查看更多
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </a>
+        </div>
+        
+        <div class="card deal-card">
+          <div class="card-header">
+            <div class="card-title">麥當勞 🍔</div>
+            <div class="card-time">0.5km</div>
+          </div>
+          <div class="card-content">買一送一優惠</div>
+          <div class="card-footer">
+            <div>銅鑼灣</div>
+            <div style="color: #ef4444;">到期: 今日 23:59</div>
+          </div>
+        </div>
+        
+        <div class="card deal-card">
+          <div class="card-header">
+            <div class="card-title">百佳 🛒</div>
+            <div class="card-time">1.2km</div>
+          </div>
+          <div class="card-content">8折優惠</div>
+          <div class="card-footer">
+            <div>旺角</div>
+            <div style="color: #ef4444;">到期: 明日 12:00</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 導航欄 -->
+    <div class="nav-bar">
+      <button class="nav-btn active">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+          <polyline points="9 22 9 12 15 12 15 22"></polyline>
+        </svg>
+      </button>
+      <button class="nav-btn">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+      </button>
+      <button class="nav-btn">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+      </button>
+    </div>
+
+    <script type="module" src="//src/main.jsx"></script>
+  </body>
+</html>
